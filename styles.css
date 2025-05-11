@@ -46,7 +46,7 @@ h1 {
 }
 
 .cell.x {
-    color: cya;
+    color: #00FFFF; /* Cyan for X */
 }
 
 .cell.o {
