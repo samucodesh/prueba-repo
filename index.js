@@ -1,118 +1,146 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const board = document.getElementById('board');
-    const cells = document.querySelectorAll('.cell');
-    const status = document.getElementById('status');
-    const restartButton = document.getElementById('restart-button');
+// Game configuration
+const GAME_CONFIG = {
+    PLAYERS: {
+        X: 'X',
+        O: 'O'
+    },
+    BOARD_SIZE: 9,
+    WINNING_COMBINATIONS: [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+        [0, 4, 8], [2, 4, 6]             // Diagonals
+    ],
+    CELL_CLASSES: {
+        X: 'x',
+        O: 'o',
+        WINNING: 'winning-cell'
+    }
+};
 
-    let currentPlayer = 'X';
-    let gameActive = true;
-    let gameState = ['', '', '', '', '', '', '', '', ''];
+class TicTacToe {
+    constructor() {
+        this.initializeElements();
+        this.initializeGame();
+        this.addEventListeners();
+    }
 
-    const winningConditions = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ];
+    initializeElements() {
+        this.board = document.getElementById('board');
+        this.cells = document.querySelectorAll('.cell');
+        this.status = document.getElementById('status');
+        this.restartButton = document.getElementById('restart-button');
+    }
 
-    // Function to handle a player's move
-    function handleCellClick(event) {
+    initializeGame() {
+        this.currentPlayer = GAME_CONFIG.PLAYERS.X;
+        this.gameActive = true;
+        this.gameState = Array(GAME_CONFIG.BOARD_SIZE).fill('');
+        this.updateStatus();
+    }
+
+    addEventListeners() {
+        this.cells.forEach(cell => 
+            cell.addEventListener('click', (e) => this.handleCellClick(e))
+        );
+        this.restartButton.addEventListener('click', () => this.restartGame());
+    }
+
+    handleCellClick(event) {
         const clickedCell = event.target;
         const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
 
-        // Check if the cell is already occupied or the game is inactive
-        if (gameState[clickedCellIndex] !== '' || !gameActive) {
-            return;
-        }
+        if (!this.isValidMove(clickedCellIndex)) return;
 
-        // Update game state and UI
-        gameState[clickedCellIndex] = currentPlayer;
-        clickedCell.textContent = currentPlayer;
-        clickedCell.classList.add(currentPlayer.toLowerCase()); // Add class for styling
-
-        // Check for win or tie
-        checkResult();
-
-        // Switch players
-        if (gameActive) {
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            status.textContent = `Player ${currentPlayer}'s turn`;
+        this.makeMove(clickedCellIndex, clickedCell);
+        this.checkGameResult();
+        
+        if (this.gameActive) {
+            this.switchPlayer();
+            this.updateStatus();
         }
     }
 
-    // Function to check for win or tie
-    function checkResult() {
-        let roundWon = false;
-        for (let i = 0; i < winningConditions.length; i++) {
-            const winCondition = winningConditions[i];
-            let a = gameState[winCondition[0]];
-            let b = gameState[winCondition[1]];
-            let c = gameState[winCondition[2]];
+    isValidMove(index) {
+        return this.gameState[index] === '' && this.gameActive;
+    }
 
-            if (a === '' || b === '' || c === '') {
-                continue;
-            }
-            if (a === b && b === c) {
-                roundWon = true;
-                break;
-            }
-        }
+    makeMove(index, cell) {
+        this.gameState[index] = this.currentPlayer;
+        cell.textContent = this.currentPlayer;
+        cell.classList.add(GAME_CONFIG.CELL_CLASSES[this.currentPlayer]);
+    }
 
-        if (roundWon) {
-            status.textContent = `Player ${currentPlayer} wins!`;
-            gameActive = false;
-            highlightWinningCells();
-            return;
-        }
-
-        // Check for tie
-        let roundTie = !gameState.includes('');
-        if (roundTie) {
-            status.textContent = 'It\'s a tie!';
-            gameActive = false;
-            return;
+    checkGameResult() {
+        if (this.checkWin()) {
+            this.handleWin();
+        } else if (this.checkTie()) {
+            this.handleTie();
         }
     }
 
-    // Function to highlight the winning cells
-    function highlightWinningCells() {
-        for (let i = 0; i < winningConditions.length; i++) {
-            const winCondition = winningConditions[i];
-            let a = gameState[winCondition[0]];
-            let b = gameState[winCondition[1]];
-            let c = gameState[winCondition[2]];
-
-            if (a === b && b === c && a !== '') {
-                cells[winCondition[0]].classList.add('winning-cell');
-                cells[winCondition[1]].classList.add('winning-cell');
-                cells[winCondition[2]].classList.add('winning-cell');
-                break;
-            }
-        }
-    }
-
-    // Function to restart the game
-    function restartGame() {
-        currentPlayer = 'X';
-        gameActive = true;
-        gameState = ['', '', '', '', '', '', '', '', ''];
-        status.textContent = `Player ${currentPlayer}'s turn`;
-
-        cells.forEach(cell => {
-            cell.textContent = '';
-            cell.classList.remove('x', 'o', 'winning-cell');
+    checkWin() {
+        return GAME_CONFIG.WINNING_COMBINATIONS.some(combination => {
+            const [a, b, c] = combination;
+            return this.gameState[a] !== '' &&
+                   this.gameState[a] === this.gameState[b] &&
+                   this.gameState[a] === this.gameState[c];
         });
     }
 
-    // Add event listeners
-    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-    restartButton.addEventListener('click', restartGame);
+    checkTie() {
+        return !this.gameState.includes('');
+    }
 
-    // Initial status display
-    status.textContent = `Player ${currentPlayer}'s turn`;
+    handleWin() {
+        this.status.textContent = `Player ${this.currentPlayer} wins!`;
+        this.gameActive = false;
+        this.highlightWinningCells();
+    }
 
+    handleTie() {
+        this.status.textContent = "It's a tie!";
+        this.gameActive = false;
+    }
+
+    highlightWinningCells() {
+        const winningCombination = GAME_CONFIG.WINNING_COMBINATIONS.find(combination => {
+            const [a, b, c] = combination;
+            return this.gameState[a] !== '' &&
+                   this.gameState[a] === this.gameState[b] &&
+                   this.gameState[a] === this.gameState[c];
+        });
+
+        if (winningCombination) {
+            winningCombination.forEach(index => {
+                this.cells[index].classList.add(GAME_CONFIG.CELL_CLASSES.WINNING);
+            });
+        }
+    }
+
+    switchPlayer() {
+        this.currentPlayer = this.currentPlayer === GAME_CONFIG.PLAYERS.X 
+            ? GAME_CONFIG.PLAYERS.O 
+            : GAME_CONFIG.PLAYERS.X;
+    }
+
+    updateStatus() {
+        this.status.textContent = `Player ${this.currentPlayer}'s turn`;
+    }
+
+    restartGame() {
+        this.initializeGame();
+        this.cells.forEach(cell => {
+            cell.textContent = '';
+            cell.classList.remove(
+                GAME_CONFIG.CELL_CLASSES.X,
+                GAME_CONFIG.CELL_CLASSES.O,
+                GAME_CONFIG.CELL_CLASSES.WINNING
+            );
+        });
+    }
+}
+
+// Initialize game when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new TicTacToe();
 });
