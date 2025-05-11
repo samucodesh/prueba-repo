@@ -5,33 +5,34 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background-color: #f0f0f0;
+    background-color: #1a1a1a;
     margin: 0;
 }
 
 h1 {
     margin-bottom: 20px;
-    color: #333;
+    color: #b026ff;
 }
 
 #status {
     margin-bottom: 20px;
+    margin-top: 30px;
     font-size: 1.2em;
     font-weight: bold;
+    color: #b026ff;
 }
 
 #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
     grid-template-rows: repeat(3, 100px);
-    gap: 5px;
-    border: 3px solid #333;
+    gap: 5px; /* border: 3px solid #333; */
 }
 
 .cell {
     width: 100px;
     height: 100px;
-    background-color: #fff;
+    background-color: #2d1b3b;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -41,15 +42,15 @@ h1 {
 }
 
 .cell:hover {
-    background-color: #ddd;
+    background-color: #3d2b4b;
 }
 
 .cell.x {
-    color: #ff0000; /* Red for X */
+    color: cya;
 }
 
 .cell.o {
-    color: #0000ff; /* Blue for O */
+    color: #b026ff;
 }
 
 button {
@@ -57,4 +58,14 @@ button {
     padding: 10px 20px;
     font-size: 1em;
     cursor: pointer;
+    background-color: #1064b3;
+    color: #00cbcc;
+    border: 2px solid #1f11dd;
+    border-radius: 5px;
 }
+
+button:hover {
+    background-color: #0c43db;
+}
+
+/* clt+sh+a -- alt+mouse */
